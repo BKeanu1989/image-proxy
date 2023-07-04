@@ -1,4 +1,5 @@
-import { createIPX, createIPXMiddleware } from "ipx";
+import ipx from "ipx";
+// import { createIPX, createIPXMiddleware } from "ipx";
 import express from "express";
 import path from "path";
 import * as url from "url";
@@ -6,28 +7,24 @@ import * as url from "url";
 const PORT = 80;
 const HOSTNAME = "localhost";
 const __dirname = url.fileURLToPath(new URL(".", import.meta.url));
+const app = express();
 
 const ipx = createIPX({ format: "webp", id: "test" });
-app.use(
-  ipx({
-    baseUrl: "/image", // Base URL for the image proxy
-    // domains: ['example.com'], // Allowed image domains (optional)
-    cache: {
-      engine: "memory", // Cache engine (memory, redis, or custom)
-      options: {
-        max: 500, // Maximum number of images to cache in memory (optional)
-      },
-    },
-  })
-);
-const app = express();
-// app.use("/image", createIPXMiddleware(ipx));
+// app.use(
+//   ipx({
+//     baseUrl: "/image", // Base URL for the image proxy
+//     // domains: ['example.com'], // Allowed image domains (optional)
+//     cache: {
+//       engine: "memory", // Cache engine (memory, redis, or custom)
+//       options: {
+//         max: 500, // Maximum number of images to cache in memory (optional)
+//       },
+//     },
+//   })
+// );
+app.use("/image", createIPXMiddleware(ipx));
 // app.use("/static", express.static(path.join(__dirname, "static")));
 app.use(express.static(path.join(__dirname, "static")));
-
-app.get("/", (req, res) => {
-  res.send("Hello World!");
-});
 
 app.get("/image/:url", (req, res) => {
   const { url } = req.params;
@@ -35,6 +32,10 @@ app.get("/image/:url", (req, res) => {
 
   // Stream the image response from ipx to the client
   imageRequest.pipe(res);
+});
+
+app.get("/", (req, res) => {
+  res.send("Hello World!");
 });
 
 app.listen(PORT, HOSTNAME, () => {
